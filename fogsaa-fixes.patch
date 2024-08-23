@@ -1,0 +1,278 @@
+--- ../fogsaa_orig/fogsaa.cpp	2013-04-11 08:07:52
++++ fogsaa.cpp	2024-08-22 23:02:23
+@@ -67,7 +67,6 @@
+ #include<stdio.h>
+ #include<string.h> 
+ #include<stdlib.h>
+-using namespace std;
+ #include <sys/time.h>
+ #include <unistd.h>
+ 
+@@ -167,6 +166,16 @@
+ 	  }
+ 	  else
+ 	  printf(" Invalid argument\n");
++
++	if (Mt < 0) {
++		printf("WARNING: Match score is negative. This may cause issues with this implementation.\n");
++	}
++	if (Mst > 0) {
++		printf("WARNING: Mismatch score is positive. This may cause issues with this implementation.\n");
++	}
++	if (Gp > 0 || Go + Ge > 0) {
++		printf("WARNING: Gap score is positive. This may cause issues with this implementation.\n");
++	}
+ 	  
+  // loop for multiple pairs of sequences
+  for(loop=1;loop<=1;loop++)
+@@ -174,7 +183,15 @@
+  
+ 
+ 	fp1=fopen(argv[1],"r");
++	if (!fp1) {
++		perror(argv[1]);
++		return 1;
++	}
+ 	fp2=fopen("seq1.txt","w");
++	if (!fp2) {
++		perror("seq1.txt");
++		return 1;
++	}
+ 	while((ca=getc(fp1))!='\n')
+ 	{ }
+ 
+@@ -189,7 +206,15 @@
+ 	fclose(fp2);
+ 
+ 	fp1=fopen(argv[2],"r");
++	if (!fp1) {
++		perror(argv[2]);
++		return 1;
++	}
+ 	fp2=fopen("seq2.txt","w");
++	if (!fp2) {
++		perror("seq2.txt");
++		return 1;
++	}
+ 	while((ca=getc(fp1))!='\n')
+ 	{ }
+ 
+@@ -207,11 +232,19 @@
+ 	
+ 	int i;
+ 	fp1=fopen("seq1.txt","r");
++	if (!fp1) {
++		perror("seq1.txt");
++		return 1;
++	}
+ 	fseek(fp1, 0L, SEEK_END);
+ 	m = ftell(fp1);
+ 	pair1 = (char *)malloc((m+1) * sizeof(char));
++	if (!pair1) {
++		perror("malloc()");
++		return 1;
++	}
+ 	fseek(fp1, 0L, SEEK_SET);
+-	cout<<m<<"\n";
++	std::cout<<m<<"\n";
+ 	for(i=0;i<m;i++)
+ 	{
+ 		fseek(fp1,(long) (i), SEEK_SET);
+@@ -221,11 +254,19 @@
+ 	}
+ 	pair1[i]='\0';
+ 	fp2=fopen("seq2.txt","r");
++	if (!fp2) {
++		perror("seq2.txt");
++		return 1;
++	}
+ 	fseek(fp2, 0L, SEEK_END);
+ 	n = ftell(fp2);
+ 	pair2 = (char *)malloc((n+1) * sizeof(char));
++	if (!pair2) {
++		perror("malloc()");
++		return 1;
++	}
+ 	fseek(fp2, 0L, SEEK_SET);
+-	cout<<n<<"\n";
++	std::cout<<n<<"\n";
+ 	for(i=0;i<n;i++)
+ 	{
+ 		fseek(fp2,(long) (i), SEEK_SET);
+@@ -241,6 +282,10 @@
+ 
+ 		// initialize the amino acid matrix
+ 		fp1=fopen("amino.txt","r");
++		if (!fp1) {
++			perror("amino.txt");
++			return 1;
++		}
+ 		char cc;
+ 
+ 		for(int i=0;i<20;i++)
+@@ -256,6 +301,10 @@
+ 		
+ 		// read the score matrix from file
+ 		fp1=fopen("fscore.txt","r");
++		if (!fp1) {
++			perror("fscore.txt");
++			return 1;
++		}
+ 		fscanf(fp1,"%d",&fscore[0][0]);
+ 		prmin=fscore[0][0];
+ 		prmax=fscore[0][0];
+@@ -298,8 +347,16 @@
+ 	
+ 
+ 	 c = (cell **)malloc((m+1) * sizeof(cell *));
++	 if (!c) {
++		perror("malloc()");
++		return 1;
++	 }
+ 	 for (i = 0; i <=m; i++) {
+     c[i] =(cell *) malloc( (n+1)* sizeof(cell));
++    if (!c[i]) {
++	perror("malloc()");
++	return 1;
++    }
+   }
+ 		
+ 	
+@@ -377,7 +434,7 @@
+ 					if(DNA==2)
+ 					{
+ 						
+-						Mt=fscore[amino[ca-'A']][amino[cb-'A']];
++						Mt=fscore[(int)amino[ca-'A']][(int)amino[cb-'A']];
+ 						//printf("The value of %c,%c at %d,%d=%d\n",ca,cb,amino[ca-'A'],amino[cb-'A'],Mt);
+ 						Mst=Mt;	
+ 					}
+@@ -545,7 +602,7 @@
+ 					cb=pair2[curp2];
+ 					if(DNA==2)
+ 					{
+-						Mt=fscore[amino[ca-'A']][amino[cb-'A']];
++						Mt=fscore[(int)amino[ca-'A']][(int)amino[cb-'A']];
+ 						//printf("The value =%d\n",Mt);
+ 						Mst=Mt;	
+ 					}
+@@ -607,7 +664,7 @@
+ 
+ 						if(DNA==2)
+ 						{
+-							Mt=fscore[amino[ca-'A']][amino[cb-'A']];
++							Mt=fscore[(int)amino[ca-'A']][(int)amino[cb-'A']];
+ 							//printf("The value =%d\n",Mt);
+ 							Mst=Mt;	
+ 						}
+@@ -655,7 +712,7 @@
+ 						cb=pair2[curp2];
+ 						if(DNA==2)
+ 						{
+-							Mt=fscore[amino[ca-'A']][amino[cb-'A']];
++							Mt=fscore[(int)amino[ca-'A']][(int)amino[cb-'A']];
+ 							Mst=Mt;	
+ 						}
+ 						if(ca==cb)
+@@ -698,7 +755,7 @@
+ 					cb=pair2[curp2];
+ 					if(DNA==2)
+ 					{
+-						Mt=fscore[amino[ca-'A']][amino[cb-'A']];
++						Mt=fscore[(int)amino[ca-'A']][(int)amino[cb-'A']];
+ 						//printf("The value =%d\n",Mt);
+ 						Mst=Mt;	
+ 					}
+@@ -880,7 +937,15 @@
+ 
+ 		// print the string
+ 		fp3=fopen("new_alseq1.txt","w");
++		if (!fp3) {
++			perror("new_alseq1.txt");
++			return 1;
++		}
+ 		fp4=fopen("new_alseq2.txt","w");
++		if (!fp4) {
++			perror("new_alseq2.txt");
++			return 1;
++		}
+ 		
+ 			align(optp1,optp2);
+ 			
+@@ -902,10 +967,8 @@
+ void align(int p1,int p2)
+ {
+ 	
+-	char ca,cb,c1,c2;
++	char ca,cb/*,c1,c2*/;
+ 	int pp1,pp2;
+-		ca=pair1[p1-1];
+-		cb=pair2[p2-1];
+ 		
+ 		
+ 	if(c[p1][p2].type==-1)
+@@ -915,6 +978,8 @@
+ 	}
+ 	else
+ 	{
++		ca=pair1[p1-1];
++		cb=pair2[p2-1];
+ 		if(c[p1][p2].type==1)
+ 		{
+ 			pp1=p1-1;
+@@ -936,38 +1001,38 @@
+ 		if(p1==m+1)
+ 		{
+ 			putc('-',fp3);
+-			c1='-';
++			/*c1='-';*/
+ 		}
+ 		else
+ 		{
+ 			if(pp1==p1)
+ 			{
+ 				putc('-',fp3);
+-				c1='-';
++				/* c1='-'; */
+ 			}
+ 			else
+ 			{
+ 				putc(ca,fp3);
+-				c1=ca;
++				/*c1=ca;*/
+ 			}
+ 		}
+ 
+ 		if(p2==n+1)
+ 		{
+ 			putc('-',fp4);
+-			c2='-';
++			/*c2='-';*/
+ 		}
+ 		else
+ 		{
+ 			if(pp2==p2)
+ 			{
+ 				putc('-',fp4);
+-				c2='-';
++				/*c2='-';*/
+ 			}
+ 			else
+ 			{
+ 				putc(cb,fp4);
+-				c2=cb;
++				/*c2=cb;*/
+ 			}
+ 		}
+ 		
+@@ -1001,6 +1066,10 @@
+ 	if((next_upper-c[0][0].lower)>=0)
+ 	{
+ 	newnode=(queue*)malloc(sizeof(queue));
++	if (!newnode) {
++		perror("malloc()");
++		exit(1);
++	}
+ 	newnode->p1=p1;
+ 	newnode->next_type=next_type;
+ 	newnode->next_lower=next_lower;
